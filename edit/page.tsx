@@ -1,5 +1,6 @@
+"use client"; 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import {useSearchParams, useRouter} from 'next/navigation';
 import dayjs from 'dayjs';
 import TextField from '@mui/material/TextField';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -8,20 +9,23 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Button from '@mui/material/Button';
 
 const UpdateTodo = () => {
-    const router = useRouter();
-    const { index } = router.query;
+    const router = useSearchParams()
+    const history = useRouter();
+ 
+  const index= router.get('index')
+    
+    console.log(router, 'router');
     const [description, setDescription] = useState('');
-    const [date, setDate] = useState<Date | null>(null);
-
+    const [date, setDate] = useState<dayjs.Dayjs | null>(null);
     useEffect(() => {
-        if (index) {
+        if (index !==undefined) {
             const storedTodos = localStorage.getItem('todos') || '[]';
             const todos = JSON.parse(storedTodos);
             const todoIndex = Number(index);
              const todo = todos[todoIndex];
              console.log(todo);
              setDescription(todo?.description || '');
-            setDate(todo?.date ? new Date(todo.date) : null);
+             setDate(todo?.date ? dayjs(new Date(todo.date)) : null);
             
         }
     }, [index]);
@@ -38,7 +42,7 @@ const UpdateTodo = () => {
         todos[todoIndex].date = date?.toISOString() || null;
         localStorage.setItem('todos', JSON.stringify(todos));
 
-        router.push('/');
+        history.push('/');
     };
 
     return (
@@ -74,11 +78,11 @@ const UpdateTodo = () => {
                     onChange={(e) => setDescription(e.target.value)}
                 />
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DatePicker 
-                        label="Due Date" 
-                        value={date} 
-                        onChange={(newValue: Date | null) => setDate(newValue)} 
-                    />
+                <DatePicker 
+        label="Due Date" 
+        value={date} // This is now expected to be a dayjs object or null
+        onChange={(newValue) => setDate(newValue)} // newValue is already a dayjs object because of AdapterDayjs
+    />
                 </LocalizationProvider>
                 <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
                     <Button
@@ -94,4 +98,3 @@ const UpdateTodo = () => {
 };
 
 export default UpdateTodo;
-
